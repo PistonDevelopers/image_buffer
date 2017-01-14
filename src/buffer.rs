@@ -171,13 +171,38 @@ impl<P, Container> ImageBuffer<P, Container>
     }
 
     /// Returns an iterator over the pixels of this image.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use image_buffer::{ImageBuffer, color};
+    /// let buffer = ImageBuffer::new(100, 100);
+    /// let mut sum = 0;
+    /// for pixel in buffer.pixels() {
+    ///     let &color::Gray(val) = pixel;
+    ///     sum += val[0]
+    /// }
+    /// ```
     pub fn pixels<'a>(&'a self) -> Pixels<'a, P> {
         Pixels { chunks: self.data.chunks(<P as Pixel>::channel_count() as usize) }
     }
 
     /// Enumerates over the pixels of the image.
+    ///
     /// The iterator yields the coordinates of each pixel
     /// along with a reference to them.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use image_buffer::{ImageBuffer, color};
+    /// let buffer = ImageBuffer::new(100, 100);
+    /// let mut column_sum = vec![0; 100];
+    /// for (_, y, pixel) in buffer.enumerate_pixels() {
+    ///     let &color::Gray(val) = pixel;
+    ///     column_sum[y as usize] += val[0]
+    /// }
+    /// ```
     pub fn enumerate_pixels<'a>(&'a self) -> EnumeratePixels<'a, P> {
         EnumeratePixels {
             pixels: self.pixels(),
@@ -206,11 +231,31 @@ impl<P, Container> ImageBuffer<P, Container>
     /// Returns an iterator over the mutable pixels of this image.
     /// The iterator yields the coordinates of each pixel
     /// along with a mutable reference to them.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use image_buffer::{ImageBuffer, color};
+    /// let mut buffer = ImageBuffer::new(100, 100);
+    /// for (i, pixel) in buffer.pixels_mut().enumerate() {
+    ///     *pixel = color::Gray([i as u16]);
+    /// }
+    /// ```
     pub fn pixels_mut(&mut self) -> PixelsMut<P> {
         PixelsMut { chunks: self.data.chunks_mut(<P as Pixel>::channel_count() as usize) }
     }
 
-    /// Enumerates over the pixels of the image.
+    /// Enumerates over the mutable pixels of the image.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use image_buffer::{ImageBuffer, color};
+    /// let mut buffer = ImageBuffer::new(100, 100);
+    /// for (x, y, pixel) in buffer.enumerate_pixels_mut() {
+    ///     *pixel = color::Gray([x * y]);
+    /// }
+    /// ```
     pub fn enumerate_pixels_mut<'a>(&'a mut self) -> EnumeratePixelsMut<'a, P> {
         let width = self.width;
         EnumeratePixelsMut {
@@ -230,15 +275,6 @@ impl<P, Container> ImageBuffer<P, Container>
         let no_channels = <P as Pixel>::channel_count() as usize;
         let index = no_channels * (y * self.width + x) as usize;
         <P as Pixel>::from_slice_mut(&mut self.data[index..index + no_channels])
-    }
-
-    /// Puts a pixel at location `(x, y)`
-    ///
-    /// # Panics
-    ///
-    /// Panics if `(x, y)` is out of the bounds `(width, height)`.
-    pub fn put_pixel(&mut self, x: u32, y: u32, pixel: P) {
-        *self.get_pixel_mut(x, y) = pixel
     }
 }
 
@@ -340,6 +376,15 @@ impl<'a, 'b, Container, FromColor: Pixel> ImageBuffer<FromColor, Container>
     /// Performs a color conversion of the image buffer.
     ///
     /// Converts the color `FromColor` to the color `ToColor`. Allocates a new image buffer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use image_buffer::{RgbImage, GrayImage, color};
+    /// let rgb = RgbImage::new(100, 100);
+    /// let grayscale = rgb.convert_buffer::<color::Gray<u8>>();
+    /// ```
+    
     pub fn convert_buffer<ToColor>(&self) -> ImageBuffer<ToColor, Vec<ToColor::Subpixel>>
         where ToColor: Pixel + From<FromColor>
     {

@@ -2,6 +2,11 @@
 name = "image_buffer"
 version = "0.1.0"
 authors = ["nwin <nwin@users.noreply.github.com>"]
+description = "Provides a buffer type to ease the work with images and different color types."
+readme = "README.md"
+repository = "https://github.com/PistonDevelopers/image_buffer.git"
+documentation = "https://docs.rs/image_buffer"
+homepage = "https://github.com/PistonDevelopers/image_buffer"
 
 [dependencies]
 num-traits = "0.1"
