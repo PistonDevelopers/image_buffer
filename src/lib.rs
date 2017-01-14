@@ -1,5 +1,3 @@
-#![feature(optin_builtin_traits)]
-
 extern crate num_traits;
 
 mod buffer;
