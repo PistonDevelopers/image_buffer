@@ -1,4 +1,4 @@
-use num_traits::{ NumCast, Unsigned };
+use num_traits::{NumCast, Unsigned};
 
 use traits::Primitive;
 use super::{Rgb, Rgba, Gray, GrayA};
@@ -6,8 +6,12 @@ use super::{Rgb, Rgba, Gray, GrayA};
 
 /// Clamp the value to a given range.
 pub fn clamp<N: PartialOrd>(a: N, min: N, max: N) -> N {
-    if a < min { return min }
-    if a > max { return max }
+    if a < min {
+        return min;
+    }
+    if a > max {
+        return max;
+    }
     a
 }
 
@@ -19,9 +23,9 @@ fn srgb_to_linear<T: Primitive + Unsigned>(c: T) -> f32 {
     let c = c.to_f32().unwrap() * (1.0 / T::max_value().to_f32().unwrap());
     // sRGB gamma correction
     if c < 0.04045 {
-        c/12.92
+        c / 12.92
     } else {
-        ((c + 0.055)/1.055).powf(2.4)
+        ((c + 0.055) / 1.055).powf(2.4)
     }
 }
 
@@ -31,9 +35,9 @@ fn srgb_to_linear<T: Primitive + Unsigned>(c: T) -> f32 {
 fn linear_to_srgb<T: Primitive + Unsigned>(c: f32) -> T {
     // Inverse gamma correction
     let c = if c < 0.0031308 {
-        c*12.92
+        c * 12.92
     } else {
-        1.055*c.powf(1.0/2.4) - 0.055
+        1.055 * c.powf(1.0 / 2.4) - 0.055
     };
     let max = T::max_value().to_f32().unwrap();
     NumCast::from(clamp(c * max, 0.0, max).round()).unwrap()
@@ -52,25 +56,21 @@ fn rgb_to_luminance<T: Primitive + Unsigned, V: Primitive + Unsigned>(r: T, g: T
 
 impl<T: Primitive + Unsigned> From<Rgba<T>> for Gray<T> {
     fn from(other: Rgba<T>) -> Self {
-            let rgba = other.0;
-            Gray([
-                rgb_to_luminance(rgba[0], rgba[1], rgba[2]),
-            ])
+        let rgba = other.0;
+        Gray([rgb_to_luminance(rgba[0], rgba[1], rgba[2])])
     }
 }
 
 impl<T: Primitive + Unsigned> From<Rgb<T>> for Gray<T> {
     fn from(other: Rgb<T>) -> Self {
-            let rgb = other.0;
-            Gray([
-                rgb_to_luminance(rgb[0], rgb[1], rgb[2]),
-            ])
+        let rgb = other.0;
+        Gray([rgb_to_luminance(rgb[0], rgb[1], rgb[2])])
     }
 }
 
 impl<T: Primitive> From<GrayA<T>> for Gray<T> {
     fn from(other: GrayA<T>) -> Self {
-            Gray([other.0[0]])
+        Gray([other.0[0]])
     }
 }
 
@@ -79,28 +79,19 @@ impl<T: Primitive> From<GrayA<T>> for Gray<T> {
 impl<T: Primitive + Unsigned> From<Rgba<T>> for GrayA<T> {
     fn from(other: Rgba<T>) -> Self {
         let rgba = other.0;
-        GrayA([
-            rgb_to_luminance(rgba[0], rgba[1], rgba[2]),
-            rgba[3],
-        ])
+        GrayA([rgb_to_luminance(rgba[0], rgba[1], rgba[2]), rgba[3]])
     }
 }
 
 impl<T: Primitive + Unsigned> From<Rgb<T>> for GrayA<T> {
     fn from(other: Rgb<T>) -> Self {
         let rgb = other.0;
-        GrayA([
-            rgb_to_luminance(rgb[0], rgb[1], rgb[2]),
-            T::max_value(),
-        ])
+        GrayA([rgb_to_luminance(rgb[0], rgb[1], rgb[2]), T::max_value()])
     }
 }
 
 impl<T: Primitive> From<Gray<T>> for GrayA<T> {
     fn from(other: Gray<T>) -> Self {
-        GrayA([
-            other.0[0],
-            T::max_value(),
-        ])
+        GrayA([other.0[0], T::max_value()])
     }
 }

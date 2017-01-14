@@ -1,7 +1,7 @@
 mod rgb;
 mod gray;
 
-use std::ops::{ Index, IndexMut };
+use std::ops::{Index, IndexMut};
 use std::mem;
 
 use traits::Pixel;
@@ -24,19 +24,20 @@ $( // START Structure definitions
 pub struct $ident<T: Primitive>(pub [T; $channels]);
 
 impl<T: Primitive + 'static> Pixel for $ident<T> {
-    
+
     type Subpixel = T;
     type Storage = [T; $channels];
-    
+
     /// Returns the number of channels of this pixel type.
     fn channel_count() -> u8 {
         $channels
     }
-    
+
     #[inline(always)]
     fn channels(&self) -> &[T; $channels] {
         &self.0
     }
+
     #[inline(always)]
     fn channels_mut(&mut self) -> &mut [T; $channels] {
         &mut self.0
@@ -52,6 +53,7 @@ impl<T: Primitive + 'static> Pixel for $ident<T> {
             mem::transmute(slice.as_ptr())
         }
     }
+
     fn from_slice_mut<'a>(slice: &'a mut [T]) -> &'a mut $ident<T> {
         unsafe {
             assert_eq!(slice.len(), $channels);
@@ -99,7 +101,7 @@ impl<T: Primitive + 'static> Pixel for $ident<T> {
         }
 
     }
-    
+
     fn color_model() -> &'static str {
         $interpretation
     }
@@ -135,7 +137,7 @@ impl ColorType {
             $(ColorType::$ident(n) => $channels * n as usize,)*
         }
     }
-    
+
     /// Returns the number of color channels that are in a pixel of ColorType `self`.
     pub fn num_components(self) -> usize {
         match self {

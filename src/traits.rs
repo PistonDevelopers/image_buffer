@@ -1,18 +1,18 @@
-use num_traits::{ Bounded, Num, NumCast };
+use num_traits::{Bounded, Num, NumCast};
 
 /// A generalized pixel.
 ///
 /// A pixel object is usually not used standalone but as a view into an image buffer.
 pub trait Pixel: Copy + Clone + 'static {
     /// The underlying subpixel type.
-    
+
     // TODO: Workaround until associated consts work.
     type Subpixel: Primitive;
     type Storage: 'static;
     // TODO: The preferred solution would be:
     // type Subpixel: Primitive;
     // const NUM_CHANNELS: usize;
-    
+
     /// Returns the number of channels of this pixel type.
     // TODO: Remove is NUM_CHANNELS is available
     fn channel_count() -> u8;
@@ -60,12 +60,14 @@ pub trait Pixel: Copy + Clone + 'static {
     /// Apply the function ```f``` to each channel except the alpha channel.
     /// Apply the function ```g``` to the alpha channel.
     fn map_with_alpha<F, G>(&self, f: F, g: G) -> Self
-        where F: Fn(Self::Subpixel) -> Self::Subpixel, G: Fn(Self::Subpixel) -> Self::Subpixel;
+        where F: Fn(Self::Subpixel) -> Self::Subpixel,
+              G: Fn(Self::Subpixel) -> Self::Subpixel;
 
     /// Apply the function ```f``` to each channel except the alpha channel.
     /// Apply the function ```g``` to the alpha channel. Works in-place.
     fn apply_with_alpha<F, G>(&mut self, f: F, g: G)
-        where F: Fn(Self::Subpixel) -> Self::Subpixel, G: Fn(Self::Subpixel) -> Self::Subpixel;
+        where F: Fn(Self::Subpixel) -> Self::Subpixel,
+              G: Fn(Self::Subpixel) -> Self::Subpixel;
 
     /// Apply the function ```f``` to each channel of this pixel and
     /// ```other``` pairwise.
