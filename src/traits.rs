@@ -87,6 +87,7 @@ pub trait Primitive: Copy + Clone + NumCast + Num + PartialOrd<Self> + Bounded {
 impl Primitive for usize {}
 impl Primitive for u8 {}
 impl Primitive for u16 {}
+impl Primitive for u32 {}
 impl Primitive for u64 {}
 impl Primitive for isize {}
 impl Primitive for i8 {}
