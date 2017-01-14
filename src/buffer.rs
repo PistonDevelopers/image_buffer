@@ -408,7 +408,8 @@ pub type GrayAlphaImage = ImageBuffer<GrayA<u8>, Vec<u8>>;
 #[cfg(test)]
 mod test {
 
-    use super::{ImageBuffer, RgbImage, GrayImage, Pixel};
+    use super::{ImageBuffer, RgbImage, GrayImage};
+    use Pixel;
     use color_model;
 
     #[test]
