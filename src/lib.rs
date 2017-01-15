@@ -4,8 +4,9 @@
 //!
 //! `image_buffer` provides an `ImageBuffer` which helps to access the pixels of an image. It
 //! provides iterators over the pixels of the image (via `ImageBuffer::pixels[_mut]` and
-//! `ImageBuffer::enumerate_pixels[_mut]`). Furthermore it implements `Index` and `IndexMut` which take a tuple
-//! `(x, y)` with the coordinates of the pixel. `(0, 0)` is in the top left corner
+//! `ImageBuffer::enumerate_pixels[_mut]`). Furthermore it implements `Index` and `IndexMut`
+//! which takes a tuple `(x, y)` with the coordinates of the pixel. `(0, 0)` is in the top left
+//! corner.
 //!
 //! An image buffer can either be create by wrapping an existing buffer
 //!
@@ -27,8 +28,8 @@
 //! # Color types
 //!
 //! This crate implements various color types, accessible via the `color` module. They implement
-//! `From` wherever it makes sense to be able to convert between them. The `Rgb` to `Gray` conversion
-//! assumes `Rgb` to be in the [sRGB](https://en.wikipedia.org/wiki/SRGB) color model.
+//! `From` wherever it makes sense to be able to convert between them. The `Rgb` to `Gray`
+//! conversion assumes `Rgb` to be in the [sRGB](https://en.wikipedia.org/wiki/SRGB) color model.
 //!
 //! The `ImageBuffer` uses this to provide a convenience method for color conversions
 //!
@@ -41,6 +42,7 @@ extern crate num_traits;
 
 mod buffer;
 mod color_model;
+mod math;
 mod traits;
 
 #[cfg_attr(rustfmt, rustfmt_skip)]

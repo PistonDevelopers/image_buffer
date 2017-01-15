@@ -1,5 +1,6 @@
-mod rgb;
+mod cie;
 mod gray;
+mod rgb;
 
 use std::ops::{Index, IndexMut};
 use std::mem;
@@ -150,9 +151,14 @@ impl ColorType {
 }
 
 define_color_model! {
-    Rgb, 3, 0, "RGB", #[doc = "RGB colors"];
-    Gray, 1, 0, "Y", #[doc = "Grayscale colors"];
-    Rgba, 4, 1, "RGBA", #[doc = "RGB colors + alpha channel"];
-    //Bgra, 4, 1, "BGRA", RGBA, #[doc = "BGR colors + alpha channel"];
-    GrayA, 2, 1, "YA", #[doc = "Grayscale colors + alpha channel"];
+    Rgb, 3, 0, "RGB", #[doc = "sRGB."];
+    Rgba, 4, 1, "RGBA", #[doc = "sRGB + alpha channel."];
+    Bgra, 4, 1, "BGRA", #[doc = "BGRA.\n\nFor convenience. Only conversion with RGBA is defined."];
+    Xyz, 3, 0, "XYZ", #[doc = "CIE XYZ."];
+    XyzA, 4, 1, "XYZ", #[doc = "CIE XYZ + alpha channel."];
+    Lab, 3, 0, "CIE Lab", #[doc = "CIE L*a*b*."];
+    LabA, 4, 1, "CIE Lab alpha", #[doc = "CIE L*a*b* + alpha channel."];
+    Gray, 1, 0, "Y", #[doc = "Grayscale"];
+    GrayA, 2, 1, "YA", #[doc = "Grayscale + alpha channel."];
+    Indexed, 1, 0, "Idx", #[doc = "Indexed colors.\n\nNo specific color moddel is assumed."];
 }

@@ -384,7 +384,7 @@ impl<'a, 'b, Container, FromColor: Pixel> ImageBuffer<FromColor, Container>
     /// let rgb = RgbImage::new(100, 100);
     /// let grayscale = rgb.convert_buffer::<color::Gray<u8>>();
     /// ```
-    
+
     pub fn convert_buffer<ToColor>(&self) -> ImageBuffer<ToColor, Vec<ToColor::Subpixel>>
         where ToColor: Pixel + From<FromColor>
     {
