@@ -123,6 +123,150 @@ impl<T: Primitive> IndexMut<usize> for $ident<T> {
     }
 }
 
+impl<T: Primitive> ::std::ops::Add for $ident<T> {
+    type Output = $ident<T>;
+    #[inline]
+    fn add(mut self, rhs: Self) -> Self::Output {
+        for i in 0..$channels {
+            self.0[i] = self.0[i] + rhs.0[i]
+        }
+        self
+    }
+}
+
+impl<T: Primitive> ::std::ops::AddAssign for $ident<T> {
+    #[inline]
+    fn add_assign(&mut self, rhs: Self) {
+        *self = *self + rhs;
+    }
+}
+
+impl<T: Primitive> ::std::ops::Add<T> for $ident<T> {
+    type Output = $ident<T>;
+    #[inline]
+    fn add(mut self, rhs: T) -> Self::Output {
+        for i in 0..$channels {
+            self.0[i] = self.0[i] + rhs
+        }
+        self
+    }
+}
+
+impl<T: Primitive> ::std::ops::AddAssign<T> for $ident<T> {
+    #[inline]
+    fn add_assign(&mut self, rhs: T) {
+        *self = *self + rhs;
+    }
+}
+
+impl<T: Primitive> ::std::ops::Sub for $ident<T> {
+    type Output = $ident<T>;
+    #[inline]
+    fn sub(mut self, rhs: Self) -> Self::Output {
+        for i in 0..$channels {
+            self.0[i] = self.0[i] - rhs.0[i]
+        }
+        self
+    }
+}
+
+impl<T: Primitive> ::std::ops::SubAssign for $ident<T> {
+    #[inline]
+    fn sub_assign(&mut self, rhs: Self) {
+        *self = *self - rhs;
+    }
+}
+
+impl<T: Primitive> ::std::ops::Sub<T> for $ident<T> {
+    type Output = $ident<T>;
+    #[inline]
+    fn sub(mut self, rhs: T) -> Self::Output {
+        for i in 0..$channels {
+            self.0[i] = self.0[i] - rhs
+        }
+        self
+    }
+}
+
+impl<T: Primitive> ::std::ops::SubAssign<T> for $ident<T> {
+    #[inline]
+    fn sub_assign(&mut self, rhs: T) {
+        *self = *self - rhs;
+    }
+}
+
+impl<T: Primitive> ::std::ops::Div for $ident<T> {
+    type Output = $ident<T>;
+    #[inline]
+    fn div(mut self, rhs: Self) -> Self::Output {
+        for i in 0..$channels {
+            self.0[i] = self.0[i] / rhs.0[i]
+        }
+        self
+    }
+}
+
+impl<T: Primitive> ::std::ops::DivAssign for $ident<T> {
+    #[inline]
+    fn div_assign(&mut self, rhs: Self) {
+        *self = *self / rhs;
+    }
+}
+
+impl<T: Primitive> ::std::ops::Div<T> for $ident<T> {
+    type Output = $ident<T>;
+    #[inline]
+    fn div(mut self, rhs: T) -> Self::Output {
+        for i in 0..$channels {
+            self.0[i] = self.0[i] / rhs
+        }
+        self
+    }
+}
+
+impl<T: Primitive> ::std::ops::DivAssign<T> for $ident<T> {
+    #[inline]
+    fn div_assign(&mut self, rhs: T) {
+        *self = *self / rhs;
+    }
+}
+
+impl<T: Primitive> ::std::ops::Mul for $ident<T> {
+    type Output = $ident<T>;
+    #[inline]
+    fn mul(mut self, rhs: Self) -> Self::Output {
+        for i in 0..$channels {
+            self.0[i] = self.0[i] * rhs.0[i]
+        }
+        self
+    }
+}
+
+impl<T: Primitive> ::std::ops::MulAssign for $ident<T> {
+    #[inline]
+    fn mul_assign(&mut self, rhs: Self) {
+        *self = *self * rhs;
+    }
+}
+
+impl<T: Primitive> ::std::ops::Mul<T> for $ident<T> {
+    type Output = $ident<T>;
+    #[inline]
+    fn mul(mut self, rhs: T) -> Self::Output {
+        for i in 0..$channels {
+            self.0[i] = self.0[i] * rhs
+        }
+        self
+    }
+}
+
+impl<T: Primitive> ::std::ops::MulAssign<T> for $ident<T> {
+    #[inline]
+    fn mul_assign(&mut self, rhs: T) {
+        *self = *self * rhs;
+    }
+}
+
 )* // END Structure definitions
 
 /// An enumeration over supported color types and their bit depths.
