@@ -80,6 +80,48 @@ pub trait Pixel: Copy + Clone + 'static {
         where F: Fn(Self::Subpixel, Self::Subpixel) -> Self::Subpixel;
 }
 
+/// Returns value which is used to scale a value of a channel.
+///
+/// Returns `T::max_value()` for unsigned integers and `1.0` for floats.
+pub trait ChannelMax {
+    fn channel_max() -> Self;
+}
+
+impl ChannelMax for usize {
+    fn channel_max() -> Self {
+        usize::max_value()
+    }
+}
+impl ChannelMax for u8 {
+    fn channel_max() -> Self {
+        u8::max_value()
+    }
+}
+impl ChannelMax for u16 {
+    fn channel_max() -> Self {
+        u16::max_value()
+    }
+}
+impl ChannelMax for u32 {
+    fn channel_max() -> Self {
+        u32::max_value()
+    }
+}
+impl ChannelMax for u64 {
+    fn channel_max() -> Self {
+        u64::max_value()
+    }
+}
+impl ChannelMax for f32 {
+    fn channel_max() -> Self {
+        1.0
+    }
+}
+impl ChannelMax for f64 {
+    fn channel_max() -> Self {
+        1.0
+    }
+}
 
 /// `Primitive` trait from old stdlib.
 pub trait Primitive: Copy + Clone + NumCast + Num + PartialOrd<Self> + Bounded {}
