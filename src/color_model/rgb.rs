@@ -1,9 +1,9 @@
 //! sRGB colors
 
-use num_traits::{Float, NumCast};
+use num_traits::NumCast;
 
 use traits::{Primitive, ChannelMax};
-use super::{Rgb, Rgba, Gray, GrayA, Xyz, XyzA};
+use super::{Rgb, Gray, Xyz};
 use math::clamp;
 
 /// Converts CIE 1931 XYZ to the R component of sRGB.
@@ -62,114 +62,7 @@ pub fn srgb_compress_gamma<T: Primitive + ChannelMax>(c: f32) -> T {
     })
 }
 
-impl<T: Primitive + ChannelMax> From<Rgb<T>> for Rgba<T> {
-    fn from(other: Rgb<T>) -> Self {
-        let rgb = other.0;
-        Rgba([rgb[0], rgb[1], rgb[2], T::channel_max()])
-    }
-}
-
-impl<T: Primitive> From<GrayA<T>> for Rgba<T> {
-    fn from(other: GrayA<T>) -> Self {
-        let luma_a = other.0;
-        Rgba([luma_a[0], luma_a[0], luma_a[0], luma_a[1]])
-    }
-}
-
-impl<T: Primitive + ChannelMax> From<Gray<T>> for Rgba<T> {
-    fn from(other: Gray<T>) -> Self {
-        let luma = other.0[0];
-        Rgba([luma, luma, luma, T::channel_max()])
-    }
-}
-
-impl From<XyzA<f32>> for Rgba<f32> {
-    fn from(other: XyzA<f32>) -> Self {
-        let x = other.0[0];
-        let y = other.0[1];
-        let z = other.0[2];
-        let a = other.0[3];
-        Rgba([xyz_to_r(x, y, z), xyz_to_g(x, y, z), xyz_to_b(x, y, z), a])
-    }
-}
-
-impl From<XyzA<f32>> for Rgba<u8> {
-    fn from(other: XyzA<f32>) -> Self {
-        let rgba: Rgba<f32> = other.into();
-        rgba.into()
-    }
-}
-
-impl From<XyzA<f32>> for Rgba<u16> {
-    fn from(other: XyzA<f32>) -> Self {
-        let rgb: Rgba<f32> = other.into();
-        rgb.into()
-    }
-}
-
-// Gamma expansion and compression
-
-impl From<Rgba<u8>> for Rgba<f32> {
-    fn from(other: Rgba<u8>) -> Self {
-        let a = other.0[3];
-        let rgb: Rgb<u8> = other.into();
-        let rgb: Rgb<f32> = rgb.into();
-        let mut rgba: Rgba<f32> = rgb.into();
-        rgba.0[3] = rescale(a);
-        rgba
-    }
-}
-
-impl From<Rgba<u16>> for Rgba<f32> {
-    fn from(other: Rgba<u16>) -> Self {
-        let a = other.0[3];
-        let rgb: Rgb<u16> = other.into();
-        let rgb: Rgb<f32> = rgb.into();
-        let mut rgba: Rgba<f32> = rgb.into();
-        rgba.0[3] = rescale(a);
-        rgba
-    }
-}
-
-impl From<Rgba<f32>> for Rgba<u8> {
-    fn from(other: Rgba<f32>) -> Self {
-        let a = other.0[3];
-        let rgb: Rgb<f32> = other.into();
-        let rgb: Rgb<u8> = rgb.into();
-        let mut rgba: Rgba<u8> = rgb.into();
-        rgba.0[3] = rescale(a);
-        rgba
-    }
-}
-
-impl From<Rgba<f32>> for Rgba<u16> {
-    fn from(other: Rgba<f32>) -> Self {
-        let a = other.0[3];
-        let rgb: Rgb<f32> = other.into();
-        let rgb: Rgb<u16> = rgb.into();
-        let mut rgba: Rgba<u16> = rgb.into();
-        rgba.0[3] = rescale(a);
-        rgba
-    }
-}
-
-
 // From for RGB
-
-impl<T: Primitive> From<Rgba<T>> for Rgb<T> {
-    fn from(other: Rgba<T>) -> Self {
-        let rgb_a = other.0;
-        Rgb([rgb_a[0], rgb_a[1], rgb_a[2]])
-
-    }
-}
-
-impl<T: Primitive> From<GrayA<T>> for Rgb<T> {
-    fn from(other: GrayA<T>) -> Self {
-        let luma = other.0[0];
-        Rgb([luma, luma, luma])
-    }
-}
 
 impl<T: Primitive> From<Gray<T>> for Rgb<T> {
     fn from(other: Gray<T>) -> Self {
@@ -217,6 +110,8 @@ impl From<Rgb<u16>> for Rgb<f32> {
     }
 }
 
+// Gamma expansion and compression
+
 impl From<Rgb<f32>> for Rgb<u8> {
     fn from(other: Rgb<f32>) -> Self {
         let rgb = other.0;
@@ -248,8 +143,8 @@ mod tests {
     fn test_rgb_conversions() {
         let val: Rgb<f32> = VAL_RGB_U8.into();
         assert_eq!(val.0[2], 1.0f32);
-        //let val: Rgb<u16> = val.into();
-        //assert_eq!(val.0[2], 0xFFFFu16);
+        // let val: Rgb<u16> = val.into();
+        // assert_eq!(val.0[2], 0xFFFFu16);
         let val: Rgba<u8> = VAL_RGB_U8.into();
         assert_eq!(val.0[3], 255);
         let val: Rgb<u8> = val.into();

@@ -59,7 +59,8 @@ pub use buffer::{
 };
 #[cfg_attr(rustfmt, rustfmt_skip)]
 pub use traits::{
-	Pixel,
+	Color,
+	ImageView,
 	Primitive
 };
 

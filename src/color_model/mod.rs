@@ -3,10 +3,218 @@ mod gray;
 mod rgb;
 
 use std::ops::{Index, IndexMut};
+use num_traits::Zero;
 use std::mem;
 
-use traits::Pixel;
-use traits::Primitive;
+use traits::Color;
+use traits::{Primitive, ChannelMax, ColorMathOps};
+
+const ALPHA_CHANNELS: usize = 4;
+
+/// Color with an associated alpha value.
+#[derive(Copy, Clone)]
+pub struct Alpha<C: Color>([C::Subpixel; ALPHA_CHANNELS]);
+
+impl<C: Color> Alpha<C> {
+    pub fn new(array: [C::Subpixel; ALPHA_CHANNELS]) -> Self {
+        Alpha(array)
+    }
+}
+
+impl<C: Color> AsRef<<Alpha<C> as Color>::Storage> for Alpha<C> {
+    fn as_ref(&self) -> &<Self as Color>::Storage {
+        &self.0
+    }
+}
+
+impl<C: Color> AsMut<<Alpha<C> as Color>::Storage> for Alpha<C> {
+    fn as_mut(&mut self) -> &mut <Self as Color>::Storage {
+        &mut self.0
+    }
+}
+
+impl<C: Color> Color for Alpha<C> {
+    type Subpixel = C::Subpixel;
+    type Storage = [C::Subpixel; ALPHA_CHANNELS];
+
+    /// Returns the number of channels of this pixel type.
+    fn channel_count() -> usize {
+        ALPHA_CHANNELS
+    }
+
+    #[inline(always)]
+    fn channels(&self) -> &[Self::Subpixel; ALPHA_CHANNELS] {
+        &self.0
+    }
+
+    #[inline(always)]
+    fn channels_mut(&mut self) -> &mut [Self::Subpixel; ALPHA_CHANNELS] {
+        &mut self.0
+    }
+
+    fn from_channels(other: [Self::Subpixel; ALPHA_CHANNELS]) -> Self {
+        *<Self as Color>::from_slice(&other[..ALPHA_CHANNELS])
+    }
+
+    fn from_slice<'a>(slice: &'a [Self::Subpixel]) -> &'a Self {
+        unsafe {
+            assert_eq!(slice.len(), ALPHA_CHANNELS);
+            mem::transmute(slice.as_ptr())
+        }
+    }
+
+    fn from_slice_mut<'a>(slice: &'a mut [Self::Subpixel]) -> &'a mut Self {
+        unsafe {
+            assert_eq!(slice.len(), ALPHA_CHANNELS);
+            mem::transmute(slice.as_ptr())
+        }
+    }
+
+    fn apply_with_alpha<F, G>(&mut self, f: F, g: G)
+        where F: Fn(Self::Subpixel) -> Self::Subpixel,
+              G: Fn(Self::Subpixel) -> Self::Subpixel
+    {
+        for v in self.0[..ALPHA_CHANNELS as usize - 1 as usize].iter_mut() {
+            *v = f(*v)
+        }
+        if ALPHA_CHANNELS as usize != 0 {
+            let v = &mut self.0[ALPHA_CHANNELS - 1];
+            *v = g(*v)
+        }
+    }
+
+    fn color_model() -> &'static str {
+        C::color_model()
+    }
+}
+
+
+
+impl<C: Color> Index<usize> for Alpha<C> {
+    type Output = C::Subpixel;
+    #[inline(always)]
+    fn index<'a>(&'a self, _index: usize) -> &'a C::Subpixel {
+        &self.0[_index]
+    }
+}
+
+impl<C: Color> IndexMut<usize> for Alpha<C> {
+    #[inline(always)]
+    fn index_mut<'a>(&'a mut self, _index: usize) -> &'a mut C::Subpixel {
+        &mut self.0[_index]
+    }
+}
+
+impl<C: Color> ColorMathOps<Alpha<C>> for Alpha<C> {
+    #[inline(always)]
+    fn add(mut self, rhs: Self) -> Self {
+        for i in 0..ALPHA_CHANNELS {
+            self.0[i] = self.0[i] + rhs.0[i]
+        }
+        self
+    }
+    #[inline(always)]
+    fn sub(mut self, rhs: Self) -> Self {
+        for i in 0..ALPHA_CHANNELS {
+            self.0[i] = self.0[i] - rhs.0[i]
+        }
+        self
+    }
+    #[inline(always)]
+    fn div(mut self, rhs: Self) -> Self {
+        for i in 0..ALPHA_CHANNELS {
+            self.0[i] = self.0[i] / rhs.0[i]
+        }
+        self
+    }
+    #[inline(always)]
+    fn mul(mut self, rhs: Self) -> Self {
+        for i in 0..ALPHA_CHANNELS {
+            self.0[i] = self.0[i] * rhs.0[i]
+        }
+        self
+    }
+}
+
+impl<C: Color, T: ColorMathOps<Alpha<C>>> ::std::ops::Add<T> for Alpha<C> {
+    type Output = Self;
+    #[inline]
+    fn add(self, rhs: T) -> Self::Output {
+        rhs.add(self)
+    }
+}
+
+impl<C: Color> ::std::ops::AddAssign for Alpha<C> {
+    #[inline]
+    fn add_assign(&mut self, rhs: Self) {
+        *self = *self + rhs;
+    }
+}
+
+impl<C: Color> ::std::ops::Sub for Alpha<C> {
+    type Output = Self;
+    #[inline]
+    fn sub(mut self, rhs: Self) -> Self::Output {
+        for i in 0..ALPHA_CHANNELS {
+            self.0[i] = self.0[i] - rhs.0[i]
+        }
+        self
+    }
+}
+
+impl<C: Color> ::std::ops::SubAssign for Alpha<C> {
+    #[inline]
+    fn sub_assign(&mut self, rhs: Self) {
+        *self = *self - rhs;
+    }
+}
+
+impl<C: Color> ::std::ops::Div for Alpha<C> {
+    type Output = Self;
+    #[inline]
+    fn div(mut self, rhs: Self) -> Self::Output {
+        for i in 0..ALPHA_CHANNELS {
+            self.0[i] = self.0[i] / rhs.0[i]
+        }
+        self
+    }
+}
+
+impl<C: Color> ::std::ops::DivAssign for Alpha<C> {
+    #[inline]
+    fn div_assign(&mut self, rhs: Self) {
+        *self = *self / rhs;
+    }
+}
+
+impl<C: Color> ::std::ops::Mul for Alpha<C> {
+    type Output = Self;
+    #[inline]
+    fn mul(mut self, rhs: Self) -> Self::Output {
+        for i in 0..ALPHA_CHANNELS {
+            self.0[i] = self.0[i] * rhs.0[i]
+        }
+        self
+    }
+}
+
+impl<C: Color> ::std::ops::MulAssign for Alpha<C> {
+    #[inline]
+    fn mul_assign(&mut self, rhs: Self) {
+        *self = *self * rhs;
+    }
+}
+
+impl<C: Color> From<C> for Alpha<C>
+    where C::Subpixel: ChannelMax
+{
+    fn from(other: C) -> Self {
+        let mut storage = [Zero::zero(); ALPHA_CHANNELS];
+        storage.as_mut()[..C::channel_count()].copy_from_slice(other.as_ref().as_ref());
+        storage[ALPHA_CHANNELS - 1] = ChannelMax::channel_max();
+        Alpha(storage)
+    }
+}
 
 macro_rules! define_color_model {
     {$(
@@ -22,15 +230,33 @@ $( // START Structure definitions
 #[derive(PartialEq, Eq, Clone, Debug, Copy, Hash)]
 #[repr(C)]
 #[allow(missing_docs)]
-pub struct $ident<T: Primitive>(pub [T; $channels]);
+pub struct $ident<T: Primitive>([T; $channels]);
 
-impl<T: Primitive + 'static> Pixel for $ident<T> {
+impl<T: Primitive> $ident<T> {
+    pub fn new(array: [T; $channels]) -> Self {
+        $ident(array)
+    }
+}
+
+impl<T: Primitive> AsRef<[T; $channels]> for $ident<T> {
+    fn as_ref(&self) -> &<Self as Color>::Storage {
+        &self.0
+    }
+}
+
+impl<T: Primitive> AsMut<[T; $channels]> for $ident<T> {
+    fn as_mut(&mut self) -> &mut <Self as Color>::Storage {
+        &mut self.0
+    }
+}
+
+impl<T: Primitive> Color for $ident<T> {
 
     type Subpixel = T;
     type Storage = [T; $channels];
 
     /// Returns the number of channels of this pixel type.
-    fn channel_count() -> u8 {
+    fn channel_count() -> usize {
         $channels
     }
 
@@ -45,7 +271,7 @@ impl<T: Primitive + 'static> Pixel for $ident<T> {
     }
 
     fn from_channels(other: [T; $channels]) -> $ident<T> {
-        *<$ident<T> as Pixel>::from_slice(&other[..$channels])
+        *<$ident<T> as Color>::from_slice(&other[..$channels])
     }
 
     fn from_slice<'a>(slice: &'a [T]) -> &'a $ident<T> {
@@ -62,24 +288,6 @@ impl<T: Primitive + 'static> Pixel for $ident<T> {
         }
     }
 
-    fn map<F>(& self, f: F) -> $ident<T> where F: Fn(T) -> T {
-        let mut this = (*self).clone();
-        this.apply(f);
-        this
-    }
-
-    fn apply<F>(&mut self, f: F) where F: Fn(T) -> T {
-        for v in self.0.iter_mut() {
-            *v = f(*v)
-        }
-    }
-
-    fn map_with_alpha<F, G>(&self, f: F, g: G) -> $ident<T> where F: Fn(T) -> T, G: Fn(T) -> T {
-        let mut this = (*self).clone();
-        this.apply_with_alpha(f, g);
-        this
-    }
-
     fn apply_with_alpha<F, G>(&mut self, f: F, g: G) where F: Fn(T) -> T, G: Fn(T) -> T {
         for v in self.0[..$channels as usize-$alphas as usize].iter_mut() {
             *v = f(*v)
@@ -88,19 +296,6 @@ impl<T: Primitive + 'static> Pixel for $ident<T> {
             let v = &mut self.0[$channels as usize-$alphas as usize-1];
             *v = g(*v)
         }
-    }
-
-    fn map2<F>(&self, other: &Self, f: F) -> $ident<T> where F: Fn(T, T) -> T {
-        let mut this = (*self).clone();
-        this.apply2(other, f);
-        this
-    }
-
-    fn apply2<F>(&mut self, other: &$ident<T>, f: F) where F: Fn(T, T) -> T {
-        for (a, &b) in self.0.iter_mut().zip(other.0.iter()) {
-            *a = f(*a, b)
-        }
-
     }
 
     fn color_model() -> &'static str {
@@ -123,14 +318,45 @@ impl<T: Primitive> IndexMut<usize> for $ident<T> {
     }
 }
 
-impl<T: Primitive> ::std::ops::Add for $ident<T> {
-    type Output = $ident<T>;
-    #[inline]
-    fn add(mut self, rhs: Self) -> Self::Output {
+impl<T: Primitive> ColorMathOps<$ident<T>> for $ident<T> {
+    #[inline(always)]
+    fn add(mut self, rhs: Self) -> Self {
         for i in 0..$channels {
             self.0[i] = self.0[i] + rhs.0[i]
         }
         self
+    }
+
+    #[inline(always)]
+    fn sub(mut self, rhs: Self) -> Self {
+        for i in 0..$channels {
+            self.0[i] = self.0[i] - rhs.0[i]
+        }
+        self
+    }
+
+    #[inline(always)]
+    fn div(mut self, rhs: Self) -> Self {
+        for i in 0..$channels {
+            self.0[i] = self.0[i] / rhs.0[i]
+        }
+        self
+    }
+
+    #[inline(always)]
+    fn mul(mut self, rhs: Self) -> Self {
+        for i in 0..$channels {
+            self.0[i] = self.0[i] * rhs.0[i]
+        }
+        self
+    }
+}
+
+impl<T: Primitive, V: ColorMathOps<$ident<T>>> ::std::ops::Add<V> for $ident<T> {
+    type Output = Self;
+    #[inline]
+    fn add(self, rhs: V) -> Self::Output {
+        rhs.add(self)
     }
 }
 
@@ -141,32 +367,11 @@ impl<T: Primitive> ::std::ops::AddAssign for $ident<T> {
     }
 }
 
-impl<T: Primitive> ::std::ops::Add<T> for $ident<T> {
-    type Output = $ident<T>;
+impl<T: Primitive, V: ColorMathOps<$ident<T>>> ::std::ops::Sub<V> for $ident<T> {
+    type Output = Self;
     #[inline]
-    fn add(mut self, rhs: T) -> Self::Output {
-        for i in 0..$channels {
-            self.0[i] = self.0[i] + rhs
-        }
-        self
-    }
-}
-
-impl<T: Primitive> ::std::ops::AddAssign<T> for $ident<T> {
-    #[inline]
-    fn add_assign(&mut self, rhs: T) {
-        *self = *self + rhs;
-    }
-}
-
-impl<T: Primitive> ::std::ops::Sub for $ident<T> {
-    type Output = $ident<T>;
-    #[inline]
-    fn sub(mut self, rhs: Self) -> Self::Output {
-        for i in 0..$channels {
-            self.0[i] = self.0[i] - rhs.0[i]
-        }
-        self
+    fn sub(self, rhs: V) -> Self::Output {
+        rhs.sub(self)
     }
 }
 
@@ -177,32 +382,11 @@ impl<T: Primitive> ::std::ops::SubAssign for $ident<T> {
     }
 }
 
-impl<T: Primitive> ::std::ops::Sub<T> for $ident<T> {
-    type Output = $ident<T>;
+impl<T: Primitive, V: ColorMathOps<$ident<T>>> ::std::ops::Div<V> for $ident<T> {
+    type Output = Self;
     #[inline]
-    fn sub(mut self, rhs: T) -> Self::Output {
-        for i in 0..$channels {
-            self.0[i] = self.0[i] - rhs
-        }
-        self
-    }
-}
-
-impl<T: Primitive> ::std::ops::SubAssign<T> for $ident<T> {
-    #[inline]
-    fn sub_assign(&mut self, rhs: T) {
-        *self = *self - rhs;
-    }
-}
-
-impl<T: Primitive> ::std::ops::Div for $ident<T> {
-    type Output = $ident<T>;
-    #[inline]
-    fn div(mut self, rhs: Self) -> Self::Output {
-        for i in 0..$channels {
-            self.0[i] = self.0[i] / rhs.0[i]
-        }
-        self
+    fn div(self, rhs: V) -> Self::Output {
+        rhs.div(self)
     }
 }
 
@@ -213,32 +397,11 @@ impl<T: Primitive> ::std::ops::DivAssign for $ident<T> {
     }
 }
 
-impl<T: Primitive> ::std::ops::Div<T> for $ident<T> {
-    type Output = $ident<T>;
+impl<T: Primitive, V: ColorMathOps<$ident<T>>> ::std::ops::Mul<V> for $ident<T> {
+    type Output = Self;
     #[inline]
-    fn div(mut self, rhs: T) -> Self::Output {
-        for i in 0..$channels {
-            self.0[i] = self.0[i] / rhs
-        }
-        self
-    }
-}
-
-impl<T: Primitive> ::std::ops::DivAssign<T> for $ident<T> {
-    #[inline]
-    fn div_assign(&mut self, rhs: T) {
-        *self = *self / rhs;
-    }
-}
-
-impl<T: Primitive> ::std::ops::Mul for $ident<T> {
-    type Output = $ident<T>;
-    #[inline]
-    fn mul(mut self, rhs: Self) -> Self::Output {
-        for i in 0..$channels {
-            self.0[i] = self.0[i] * rhs.0[i]
-        }
-        self
+    fn mul(self, rhs: V) -> Self::Output {
+        rhs.mul(self)
     }
 }
 
@@ -249,21 +412,9 @@ impl<T: Primitive> ::std::ops::MulAssign for $ident<T> {
     }
 }
 
-impl<T: Primitive> ::std::ops::Mul<T> for $ident<T> {
-    type Output = $ident<T>;
-    #[inline]
-    fn mul(mut self, rhs: T) -> Self::Output {
-        for i in 0..$channels {
-            self.0[i] = self.0[i] * rhs
-        }
-        self
-    }
-}
-
-impl<T: Primitive> ::std::ops::MulAssign<T> for $ident<T> {
-    #[inline]
-    fn mul_assign(&mut self, rhs: T) {
-        *self = *self * rhs;
+impl<T: Primitive> From<Alpha<$ident<T>>> for $ident<T> {
+    fn from(other: Alpha<$ident<T>>) -> Self {
+        *Color::from_slice(&other.as_ref().as_ref()[..$channels])
     }
 }
 
@@ -296,13 +447,21 @@ impl ColorType {
 
 define_color_model! {
     Rgb, 3, 0, "RGB", #[doc = "sRGB."];
-    Rgba, 4, 1, "RGBA", #[doc = "sRGB + alpha channel."];
-    Bgra, 4, 1, "BGRA", #[doc = "BGRA.\n\nFor convenience. Only conversion with RGBA is defined."];
     Xyz, 3, 0, "XYZ", #[doc = "CIE XYZ."];
-    XyzA, 4, 1, "XYZ", #[doc = "CIE XYZ + alpha channel."];
     Lab, 3, 0, "CIE Lab", #[doc = "CIE L*a*b*."];
-    LabA, 4, 1, "CIE Lab alpha", #[doc = "CIE L*a*b* + alpha channel."];
     Gray, 1, 0, "Y", #[doc = "Grayscale"];
-    GrayA, 2, 1, "YA", #[doc = "Grayscale + alpha channel."];
     Indexed, 1, 0, "Idx", #[doc = "Indexed colors.\n\nNo specific color moddel is assumed."];
+}
+
+pub type Rgba<T> = Alpha<Rgb<T>>;
+pub type Xyza<T> = Alpha<Xyz<T>>;
+pub type LabA<T> = Alpha<Lab<T>>;
+pub type GrayA<T> = Alpha<Gray<T>>;
+
+#[test]
+fn test_add() {
+    let a: Alpha<Rgb<u8>> = Alpha::new([0, 0, 0, 0]);
+    let b = a + 1;
+    assert_eq!(&[1, 1, 1, 1], b.as_ref());
+    assert_eq!(&[2, 2, 2, 2], (b + b).as_ref());
 }

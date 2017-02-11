@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 use num_traits::Zero;
 
 use color_model::{Rgb, Rgba, Gray, GrayA};
-use traits::Pixel;
+use traits::{Color as Pixel, ImageView};
 
 /// Iterator over references to pixels.
 pub struct Pixels<'a, P: Pixel + 'a>
@@ -175,12 +175,11 @@ impl<P, Container> ImageBuffer<P, Container>
     /// # Examples
     ///
     /// ```
-    /// # use image_buffer::{ImageBuffer, color};
-    /// let buffer = ImageBuffer::new(100, 100);
+    /// # use image_buffer::{GrayImage, color};
+    /// let buffer = GrayImage::new(100, 100);
     /// let mut sum = 0;
     /// for pixel in buffer.pixels() {
-    ///     let &color::Gray(val) = pixel;
-    ///     sum += val[0]
+    ///     sum += pixel[0]
     /// }
     /// ```
     pub fn pixels<'a>(&'a self) -> Pixels<'a, P> {
@@ -195,12 +194,11 @@ impl<P, Container> ImageBuffer<P, Container>
     /// # Examples
     ///
     /// ```
-    /// # use image_buffer::{ImageBuffer, color};
-    /// let buffer = ImageBuffer::new(100, 100);
+    /// # use image_buffer::{GrayImage, color};
+    /// let buffer = GrayImage::new(100, 100);
     /// let mut column_sum = vec![0; 100];
     /// for (_, y, pixel) in buffer.enumerate_pixels() {
-    ///     let &color::Gray(val) = pixel;
-    ///     column_sum[y as usize] += val[0]
+    ///     column_sum[y as usize] += pixel[0]
     /// }
     /// ```
     pub fn enumerate_pixels<'a>(&'a self) -> EnumeratePixels<'a, P> {
@@ -238,7 +236,7 @@ impl<P, Container> ImageBuffer<P, Container>
     /// # use image_buffer::{ImageBuffer, color};
     /// let mut buffer = ImageBuffer::new(100, 100);
     /// for (i, pixel) in buffer.pixels_mut().enumerate() {
-    ///     *pixel = color::Gray([i as u16]);
+    ///     *pixel = color::Gray::new([i as u16]);
     /// }
     /// ```
     pub fn pixels_mut(&mut self) -> PixelsMut<P> {
@@ -253,7 +251,7 @@ impl<P, Container> ImageBuffer<P, Container>
     /// # use image_buffer::{ImageBuffer, color};
     /// let mut buffer = ImageBuffer::new(100, 100);
     /// for (x, y, pixel) in buffer.enumerate_pixels_mut() {
-    ///     *pixel = color::Gray([x * y]);
+    ///     *pixel = color::Gray::new([x * y]);
     /// }
     /// ```
     pub fn enumerate_pixels_mut<'a>(&'a mut self) -> EnumeratePixelsMut<'a, P> {
@@ -316,6 +314,12 @@ impl<P, Container> IndexMut<(u32, u32)> for ImageBuffer<P, Container>
     fn index_mut(&mut self, (x, y): (u32, u32)) -> &mut P {
         self.get_pixel_mut(x, y)
     }
+}
+
+impl<P, Container> ImageView<P> for ImageBuffer<P, Container>
+    where P: Pixel,
+          Container: Deref<Target = [P::Subpixel]> + DerefMut
+{
 }
 
 impl<P, Container> Clone for ImageBuffer<P, Container>
@@ -409,7 +413,7 @@ pub type GrayAlphaImage = ImageBuffer<GrayA<u8>, Vec<u8>>;
 mod test {
 
     use super::{ImageBuffer, RgbImage, GrayImage};
-    use Pixel;
+    use Color;
     use color_model;
 
     #[test]
@@ -437,7 +441,7 @@ mod test {
         let mut a: RgbImage = ImageBuffer::new(10, 10);
         {
             let val = a.pixels_mut().next().unwrap();
-            *val = color_model::Rgb([42, 0, 0]);
+            *val = color_model::Rgb::new([42, 0, 0]);
         }
         assert_eq!(a.data[0], 42)
     }
