@@ -1,6 +1,6 @@
 [package]
 name = "image_buffer"
-version = "0.1.0"
+version = "0.2.0"
 license = "MIT/Apache-2.0"
 authors = ["nwin <nwin@users.noreply.github.com>"]
 description = "Provides a buffer type to ease the work with images and different color types."
