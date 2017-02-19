@@ -9,11 +9,12 @@ use std::mem;
 use traits::Color;
 use traits::{Primitive, ColorMathOps};
 
-pub use self::alpha::Alpha;
+pub use self::alpha::{Alpha2, Alpha3, Alpha4};
 
 macro_rules! define_color_model {
     {$(
         $ident: ident,
+        $alpha_ident: ident,
         $channels: expr,
         $alphas: expr,
         $interpretation: expr,
@@ -207,8 +208,8 @@ impl<T: Primitive> ::std::ops::MulAssign for $ident<T> {
     }
 }
 
-impl<T: Primitive> From<Alpha<$ident<T>>> for $ident<T> {
-    fn from(other: Alpha<$ident<T>>) -> Self {
+impl<T: Primitive> From<$alpha_ident<$ident<T>>> for $ident<T> {
+    fn from(other: $alpha_ident<$ident<T>>) -> Self {
         *Color::from_slice(&other.as_ref().as_ref()[..$channels])
     }
 }
@@ -241,21 +242,21 @@ impl ColorType {
 }
 
 define_color_model! {
-    Rgb, 3, 0, "RGB", #[doc = "sRGB."];
-    Xyz, 3, 0, "XYZ", #[doc = "CIE XYZ."];
-    Lab, 3, 0, "CIE Lab", #[doc = "CIE L*a*b*."];
-    Gray, 1, 0, "Y", #[doc = "Grayscale"];
-    Indexed, 1, 0, "Idx", #[doc = "Indexed colors.\n\nNo specific color moddel is assumed."];
+    Rgb, Alpha4, 3, 0, "RGB", #[doc = "sRGB."];
+    Xyz, Alpha4, 3, 0, "XYZ", #[doc = "CIE XYZ."];
+    Lab, Alpha4, 3, 0, "CIE Lab", #[doc = "CIE L*a*b*."];
+    Gray, Alpha2, 1, 0, "Y", #[doc = "Grayscale"];
+    Indexed, Alpha2, 1, 0, "Idx", #[doc = "Indexed colors.\n\nNo specific color moddel is assumed."];
 }
 
-pub type Rgba<T> = Alpha<Rgb<T>>;
-pub type Xyza<T> = Alpha<Xyz<T>>;
-pub type LabA<T> = Alpha<Lab<T>>;
-pub type GrayA<T> = Alpha<Gray<T>>;
+pub type Rgba<T> = Alpha4<Rgb<T>>;
+pub type Xyza<T> = Alpha4<Xyz<T>>;
+pub type LabA<T> = Alpha4<Lab<T>>;
+pub type GrayA<T> = Alpha2<Gray<T>>;
 
 #[test]
 fn test_add() {
-    let a: Alpha<Rgb<u8>> = Alpha::new([0, 0, 0, 0]);
+    let a: Alpha4<Rgb<u8>> = Alpha4::new([0, 0, 0, 0]);
     let b = a + 1;
     assert_eq!(&[1, 1, 1, 1], b.as_ref());
     assert_eq!(&[2, 2, 2, 2], (b + b).as_ref());
