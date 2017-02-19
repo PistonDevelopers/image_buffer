@@ -142,13 +142,13 @@ mod tests {
     #[test]
     fn test_rgb_conversions() {
         let val: Rgb<f32> = VAL_RGB_U8.into();
-        assert_eq!(val.0[2], 1.0f32);
+        assert_eq!(val.as_ref()[2], 1.0f32);
         // let val: Rgb<u16> = val.into();
         // assert_eq!(val.0[2], 0xFFFFu16);
         let val: Rgba<u8> = VAL_RGB_U8.into();
-        assert_eq!(val.0[3], 255);
+        assert_eq!(val.as_ref()[3], 255);
         let val: Rgb<u8> = val.into();
-        assert_eq!(val.0[1], 251);
+        assert_eq!(val.as_ref()[1], 251);
     }
 
 }
